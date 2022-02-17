@@ -10,8 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @author alumno
- *
+ * @author @dpr1005 @phf1001 - Daniel Puente Ramirez y Patricia Hernando Fernandez
  */
 public class ReusablePoolTest {
 

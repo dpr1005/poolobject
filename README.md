@@ -7,7 +7,12 @@ Java code example of creational design pattern pool object
 
 Workshop to use good practices in software developmemnt: testing and measurement.
 
-Authors:
+Professors:
 
 - Carlos Lopez Nozal
 - Jesus Alonso Abad
+
+Students:
+
+- Daniel Puente Ramírez
+- Patricia Hernando Fernández

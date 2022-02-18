@@ -49,27 +49,19 @@ public class ReusablePoolTest {
 	 */
 	@Test
 	public void testGetInstance() {
-		// Lo suyo sería acceder al vector y ver que se han creado correctamente los
-		// objetos del tipo reusable, pero habría que hacer un método público que
-		// devuelva el vector y no sé si podemos modificar el fuente.
 
-		// Caso 1: inicialmente está vacío
+		// Caso 1: referencia vacia (deberia obtener la misma instancia que pool ya que
+		// es static)
 
 		ReusablePool poolPrueba = null;
-		// Me gustaría probar no que el objeto está vacío sino el vector, su tamaño etc
-		assertTrue("El objeto inicialmente esta nulo", poolPrueba == null); // Obv la referencia no apunta a nada pero
-																			// bueno
+
 		poolPrueba = ReusablePool.getInstance();
-		assertTrue("Se ha creado el pool", poolPrueba != null); // Comprobar el vector :(
+		assertTrue("No se ha inicializado el objeto", poolPrueba != null);
 
-		// Caso 2: está creado, comprobamos que es único
+		// Caso 2: está creado, comprobamos que es unico para la clase
 
-		int hashPrevio = poolPrueba.hashCode();
-		poolPrueba = ReusablePool.getInstance();
-		int hashPosterior = poolPrueba.hashCode();
-
-		assertTrue("El pool devuelto es el mismo", hashPrevio == hashPosterior);
-		// Suponiendo que se tiene en cuenta el vector para calcular el hash xd
+		assertTrue("El pool devuelto es distinto",
+				poolPrueba.getInstance().hashCode() == pool.getInstance().hashCode());
 	}
 
 	/**
@@ -85,7 +77,7 @@ public class ReusablePoolTest {
 		try {
 			while (true) {
 				Reusable r = pool.acquireReusable();
-				//Comprobamos que se devuelve un reusable.
+				// Comprobamos que se devuelve un reusable.
 				assertTrue("El objeto no es reusable", r.getClass().equals(Reusable.class));
 				reusablesObtenidos.add(r);
 			}

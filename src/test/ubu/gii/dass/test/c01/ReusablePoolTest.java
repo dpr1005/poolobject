@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ubu.gii.dass.c01.DuplicatedInstanceException;
+import ubu.gii.dass.c01.NotFreeInstanceException;
 import ubu.gii.dass.c01.Reusable;
 import ubu.gii.dass.c01.ReusablePool;
 
@@ -46,22 +47,24 @@ public class ReusablePoolTest {
 		// Lo suyo sería acceder al vector y ver que se han creado correctamente los
 		// objetos del tipo reusable, pero habría que hacer un método público que
 		// devuelva el vector y no sé si podemos modificar el fuente.
-		
 
 		// Caso 1: inicialmente está vacío
 
 		ReusablePool poolPrueba = null;
-		assertTrue("El pool inicialmente esta nulo", poolPrueba == null);
+		// Me gustaría probar no que el objeto está vacío sino el vector, su tamaño etc
+		assertTrue("El objeto inicialmente esta nulo", poolPrueba == null); // Obv la referencia no apunta a nada pero
+																			// bueno
 		poolPrueba = ReusablePool.getInstance();
-		assertTrue("Se ha creado el pool", poolPrueba != null);
-		
-		//Caso 2: está creado, comprobamos que es único
-		
+		assertTrue("Se ha creado el pool", poolPrueba != null); // Comprobar el vector :(
+
+		// Caso 2: está creado, comprobamos que es único
+
 		int hashPrevio = poolPrueba.hashCode();
 		poolPrueba = ReusablePool.getInstance();
 		int hashPosterior = poolPrueba.hashCode();
-		
+
 		assertTrue("El pool devuelto es el mismo", hashPrevio == hashPosterior);
+		// Suponiendo que se tiene en cuenta el vector para calcular el hash xd
 	}
 
 	/**
@@ -69,7 +72,33 @@ public class ReusablePoolTest {
 	 */
 	@Test
 	public void testAcquireReusable() {
-		System.out.print("To be implemented");
+
+		// Estaría bien meter un atributo size para ir comprobando cuantos quedan
+
+		try {
+
+			Reusable r1 = pool.acquireReusable();
+			Reusable r2 = pool.acquireReusable();
+
+			assertTrue("Los reusables son distintos", !r1.equals(r2));
+
+			// Si pides un tercero, provoca que salte la excepcion
+			Reusable r3 = pool.acquireReusable();
+
+			// Oye que no salta al tercero, salta a la cuarta... El tercero lo devuelve
+			for (int i = 0; i < 10; i++)
+				pool.acquireReusable();
+
+			// Meter ahora: bucle for que compruebe que cada uno es distinto del anterior y
+			// que a la tercera salta la excepción
+
+		} catch (NotFreeInstanceException e) {
+			assertTrue("Empty pool raises NotFreeInstanceException. No items left", false);
+		} catch (Exception e2) {
+			System.err.println(e2);
+			assertTrue("...", false);
+		}
+
 	}
 
 	/**

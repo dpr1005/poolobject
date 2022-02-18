@@ -2,6 +2,7 @@ package ubu.gii.dass.test.c01;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import ubu.gii.dass.c01.DuplicatedInstanceException;
 import ubu.gii.dass.c01.NotFreeInstanceException;
@@ -9,6 +10,10 @@ import ubu.gii.dass.c01.Reusable;
 import ubu.gii.dass.c01.ReusablePool;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:dpr1005@alu.ubu.es">Daniel Puente RamÃ­rez</a>
@@ -70,35 +75,27 @@ public class ReusablePoolTest {
 	/**
 	 * Test method for {@link ubu.gii.dass.c01.ReusablePool#acquireReusable()}.
 	 */
+
 	@Test
 	public void testAcquireReusable() {
 
-		// Estaría bien meter un atributo size para ir comprobando cuantos quedan
+		// Guardamos todos los objetos hasta que salte la excepcion
+		List<Reusable> reusablesObtenidos = new LinkedList<Reusable>();
 
 		try {
-
-			Reusable r1 = pool.acquireReusable();
-			Reusable r2 = pool.acquireReusable();
-
-			assertTrue("Los reusables son distintos", !r1.equals(r2));
-
-			// Si pides un tercero, provoca que salte la excepcion
-			Reusable r3 = pool.acquireReusable();
-
-			// Oye que no salta al tercero, salta a la cuarta... El tercero lo devuelve
-			for (int i = 0; i < 10; i++)
-				pool.acquireReusable();
-
-			// Meter ahora: bucle for que compruebe que cada uno es distinto del anterior y
-			// que a la tercera salta la excepción
+			while (true) {
+				Reusable r = pool.acquireReusable();
+				//Comprobamos que se devuelve un reusable.
+				assertTrue("El objeto no es reusable", r.getClass().equals(Reusable.class));
+				reusablesObtenidos.add(r);
+			}
 
 		} catch (NotFreeInstanceException e) {
-			assertTrue("Empty pool raises NotFreeInstanceException. No items left", false);
-		} catch (Exception e2) {
-			System.err.println(e2);
-			assertTrue("...", false);
+			assertTrue("Empty pool raises NotFreeInstanceException. No items left", true);
+		} finally {
+			// Error en codigo, se permiten mas de dos reusables en el pool
+			assertTrue("Se han obtenido mas de dos reusables", reusablesObtenidos.size() <= 2);
 		}
-
 	}
 
 	/**

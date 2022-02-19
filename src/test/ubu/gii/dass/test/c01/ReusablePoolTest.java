@@ -4,117 +4,123 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import ubu.gii.dass.c01.DuplicatedInstanceException;
 import ubu.gii.dass.c01.NotFreeInstanceException;
 import ubu.gii.dass.c01.Reusable;
 import ubu.gii.dass.c01.ReusablePool;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertThrows;
+import java.util.Vector;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
-import java.util.LinkedList;
-import java.util.List;
+import static org.junit.Assert.*;
 
 /**
  * @author <a href="mailto:dpr1005@alu.ubu.es">Daniel Puente Ram√≠rez</a>
  * @author <a href="mailto:phf1001@alu.ubu.es">Patricia Hernando Fernandez</a>
  * @version 1.0
- * @since
- * 
- *        <pre>
- * feb. 17, 2022
- *        </pre>
+ * @since <pre>feb. 17, 2022</pre>
  */
 public class ReusablePoolTest {
 
-	private static ReusablePool pool;
+    private static ReusablePool pool;
+    private final long timeout = 1;
+    @Rule
+    public Timeout testTimeout = new Timeout(timeout, TimeUnit.SECONDS);
+    Logger logger = Logger.getLogger("c01");
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
-		pool = ReusablePool.getInstance();
-	}
+    /**
+     *
+     */
+    @Before
+    public void setUp() throws Exception {
+        logger.config("Setting up...");
+        pool = ReusablePool.getInstance();
+    }
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
-	}
+    /**
+     *
+     */
+    @After
+    public void tearDown() throws Exception {
+        try {
+            while (true) {
+                pool.acquireReusable();
+            }
+        } catch (Exception ex) {
+            logger.config("Finalized test.");
+        }
+    }
 
-	/**
-	 * Test method for {@link ubu.gii.dass.c01.ReusablePool#getInstance()}.
-	 */
-	@Test
-	public void testGetInstance() {
+    /**
+     * Case of study 1. Check in empty reference.
+     * Case of study 2. Check whether two given *pools* have the same instance.
+     * <p>
+     * Test method for {@link ubu.gii.dass.c01.ReusablePool#getInstance()}.
+     */
+    @Test
+    public void testGetInstance() {
+        ReusablePool poolPrueba;
 
-		// Caso 1: referencia vacia (deberia obtener la misma instancia que pool ya que
-		// es static)
+        poolPrueba = ReusablePool.getInstance();
+        assertNotNull("Object has not been initialized.", poolPrueba);
 
-		ReusablePool poolPrueba = null;
+        assertSame("Pools are not equal.", poolPrueba, pool);
+    }
 
-		poolPrueba = ReusablePool.getInstance();
-		assertTrue("No se ha inicializado el objeto", poolPrueba != null);
+    /**
+     * Case of study 1. Check whether *r* object is not null. Given the nature of *pool*
+     * it is not necessary to check whether is an intance of Reusable or not.
+     * Case of study 2. Check whether a <<new>> instance of ReusablePool has more than two
+     * Reusable objects.
+     * <p>
+     * Test method for {@link ubu.gii.dass.c01.ReusablePool#acquireReusable()}.
+     */
 
-		// Caso 2: est· creado, comprobamos que es unico para la clase
+    @Test
+    public void testAcquireReusable() {
+        Vector<Reusable> reusablesObtenidos = new Vector<>();
+        try {
 
-		assertTrue("El pool devuelto es distinto",
-				poolPrueba.getInstance().hashCode() == pool.getInstance().hashCode());
-	}
+            while (true) {
+                Reusable r = pool.acquireReusable();
+                assertNotNull("Object is not an instance of Reusable", r);
+                reusablesObtenidos.add(r);
+            }
 
-	/**
-	 * Test method for {@link ubu.gii.dass.c01.ReusablePool#acquireReusable()}.
-	 */
+        } catch (NotFreeInstanceException e) {
+            assertTrue("Empty pool raises NotFreeInstanceException. No items left", true);
+        } finally {
+            assertTrue("Se han obtenido mas de dos reusables", reusablesObtenidos.size() <= 2);
+        }
+    }
 
-	@Test
-	public void testAcquireReusable() {
+    /**
+     * Case of study. Check if Reusable.releaseReusable() throws correctly DuplicatedInstanceException.
+     * <p>
+     * Test method for
+     * {@link ubu.gii.dass.c01.ReusablePool#releaseReusable(ubu.gii.dass.c01.Reusable)}.
+     */
+    @Test
+    public void testReleaseReusable() {
+        try {
+            Reusable r = new Reusable();
+            pool.releaseReusable(r);
+            try {
+                pool.releaseReusable(r);
+            } catch (DuplicatedInstanceException e) {
+                assertTrue(true);
+            } catch (Exception ex) {
+                fail("Another exception has been raised");
+            }
 
-		// Guardamos todos los objetos hasta que salte la excepcion
-		List<Reusable> reusablesObtenidos = new LinkedList<Reusable>();
+        } catch (DuplicatedInstanceException ex1) {
+            fail("Empty pool raises DuplicatedInstanceException");
+        } catch (Exception ex2) {
+            fail("Empty pool raises Exception");
+        }
 
-		try {
-			while (true) {
-				Reusable r = pool.acquireReusable();
-				// Comprobamos que se devuelve un reusable.
-				assertTrue("El objeto no es reusable", r.getClass().equals(Reusable.class));
-				reusablesObtenidos.add(r);
-			}
-
-		} catch (NotFreeInstanceException e) {
-			assertTrue("Empty pool raises NotFreeInstanceException. No items left", true);
-		} finally {
-			// Error en codigo, se permiten mas de dos reusables en el pool
-			assertTrue("Se han obtenido mas de dos reusables", reusablesObtenidos.size() <= 2);
-		}
-	}
-
-	/**
-	 * Test method for
-	 * {@link ubu.gii.dass.c01.ReusablePool#releaseReusable(ubu.gii.dass.c01.Reusable)}.
-	 */
-	@Test
-	public void testReleaseReusable() {
-		try {
-			Reusable r = new Reusable();
-			pool.releaseReusable(r);
-			try {
-				pool.releaseReusable(r);
-			} catch (DuplicatedInstanceException e) {
-				assertTrue(true);
-			} catch (Exception ex) {
-				System.err.println(ex);
-				assertTrue("another exception has been raised", false);
-			}
-
-		} catch (DuplicatedInstanceException ex1) {
-			assertTrue("Empty pool raises DuplicatedInstanceException", false);
-		} catch (Exception ex2) {
-			System.err.println(ex2);
-			assertTrue("Empty pool raises Exception", false);
-		}
-
-	}
+    }
 
 }

@@ -33,7 +33,7 @@ public class ReusableTest {
 	@Test
 	public void testUtil() throws Exception {
 		Reusable re = new Reusable();
-		assert re.util().contains("  : Reutilizable object used.");
+		assert re.util().contains(":Uso del objeto Reutilizable");
 	}
 
 }

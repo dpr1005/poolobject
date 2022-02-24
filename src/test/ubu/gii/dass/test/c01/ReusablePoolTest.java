@@ -96,7 +96,8 @@ public class ReusablePoolTest {
 		} catch (NotFreeInstanceException e) {
 			assertTrue("Empty pool raises NotFreeInstanceException. No items left", true);
 		} finally {
-			assertTrue("Se han obtenido mas de dos reusables", reusablesObtenidos.size() <= 2);
+			assertTrue("More than two Reusable objects have been retrieved.",
+					reusablesObtenidos.size() <= 2);
 		}
 	}
 

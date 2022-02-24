@@ -113,20 +113,9 @@ public class ReusablePoolTest {
 		try {
 			Reusable r = new Reusable();
 			pool.releaseReusable(r);
-			try {
-				pool.releaseReusable(r);
-			} catch (DuplicatedInstanceException e) {
-				assertTrue(true);
-			} catch (Exception ex) {
-				fail("Another exception has been raised");
-			}
-
-		} catch (DuplicatedInstanceException ex1) {
-			fail("Empty pool raises DuplicatedInstanceException");
-		} catch (Exception ex2) {
-			fail("Empty pool raises Exception");
+			pool.releaseReusable(r);
+		} catch (DuplicatedInstanceException e) {
+			assertTrue(true);
 		}
-
 	}
-
 }
